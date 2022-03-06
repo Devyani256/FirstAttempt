@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+	<flow name="GetAll" doc:id="48dbe268-d7d0-49ab-baa6-f7464a05cf51" >
+		<db:select doc:name="Select" doc:id="b69ecd7c-89df-47cf-85ac-8885c4dc52eb" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from enquiryDetails;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="d88b3369-9bb1-45b7-853a-2dd8bbeda29f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Value: payload map ( payload01 , indexOfPayload01 ) -> {
+		eid: payload01.eid,
+		userName: payload01.userName default "",
+		emailId: payload01.emailId default "",
+		contactNo: payload01.contactNo as Number default 0,
+		dateFrom: payload01.dateFrom as String default "",
+		toDate: payload01.toDate as String default "",
+		query: payload01.query default ""
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="GetByID" doc:id="a4d70d34-9a33-48b3-99d0-9466300124f4" >
+		<db:query-single doc:name="Query single" doc:id="91e71ec2-cc88-4302-9140-a2be6b37c88f" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from enquiryDetails where eid = :a]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	a: vars.eid
+}]]]></db:input-parameters>
+		</db:query-single>
+		<ee:transform doc:name="Transform Message" doc:id="b0a92986-34e2-4e17-ae66-e9894933d29b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Value: {
+		eid: payload.eid,
+		userName: payload.userName default "",
+		emailId: payload.emailId default "",
+		contactNo: payload.contactNo as Number default 0,
+		dateFrom: payload.dateFrom as String default "",
+		toDate: payload.toDate as String default "",
+		query: payload.query default ""
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow doc:id="0ecf80c2-026e-485d-b90a-e075e5f5bee4" name="DeleteByID">
+		<db:query-single doc:name="Query single" doc:id="04be0aed-d32a-4795-a19c-82cc7dc5bef8" config-ref="Database_Config">
+			<db:sql ><![CDATA[select max(eid) from enquiryDetails;]]></db:sql>
+		</db:query-single>
+		<choice doc:name="Choice" doc:id="e2a614dc-b9db-4274-ba11-04e1fc46e6ee" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<db:delete doc:name="Delete" doc:id="ba20d562-14ee-4021-ade7-eed5e564226f" config-ref="Database_Config">
+			<db:sql><![CDATA[delete from enquiryDetails where eid = :z]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	z: vars.eid
+}]]]></db:input-parameters>
+		</db:delete>
+				<ee:transform doc:name="Transform Message" doc:id="d22122a9-4ac4-4889-a63e-7c635b7163d8">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "EnquiryID "++ (vars.eid) ++" deleted successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="1167b14c-1462-4d87-b246-28f7cf367895" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: " Invalid ID "
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[500]" doc:name="Set Variable" doc:id="fbb0fd1d-13ed-4223-858b-385ac79b6492" variableName="httpStatus"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<sub-flow name="VariableSub_Flow" doc:id="dcc54499-5318-4b1b-a20c-1be6ee9d6b2d" >
+		<set-variable value="#[message.payload.userName]" doc:name="userName" doc:id="9f5e2eb9-fd55-4bd8-b6af-b792eef4337e" variableName="userName"/>
+		<set-variable value="#[message.payload.emailId]" doc:name="emailId" doc:id="cf4120ad-2fc0-401a-8250-bebf74c32a0c" variableName="emailId"/>
+		<set-variable value="#[message.payload.contactNo]" doc:name="contactNo" doc:id="19543ddd-2b93-4968-af8f-dbe81fc06be3" variableName="contactNo"/>
+		<set-variable value="#[message.payload.dateFrom]" doc:name="dateFrom" doc:id="df7f926b-1963-4a4f-ba69-ab88989b1d91" variableName="dateFrom"/>
+		<set-variable value="#[message.payload.toDate]" doc:name="toDate" doc:id="dbfab96e-31e6-4f0f-a7b2-ed2778e0b722" variableName="toDate"/>
+		<set-variable value="#[message.payload.query]" doc:name="query" doc:id="2bf217a2-569e-4fb5-bc60-a77a0c332973" variableName="query"/>
+	</sub-flow>
+	<flow name="PostFlow" doc:id="71a97faa-4df5-4598-b0c7-602f095626a3" >
+		<flow-ref doc:name="Flow Reference" doc:id="3820109f-d942-4559-a3e3-9457ff6c81a2" name="VariableSub_Flow"/>
+		<db:query-single doc:name="Query single" doc:id="53279e36-6320-4eac-97db-c3261ac171e2" config-ref="Database_Config">
+			<db:sql ><![CDATA[select max(eid) from enquiryDetails;]]></db:sql>
+		</db:query-single>
+		<set-variable value='#["E" ++ ((payload."max(eid)"[1 to 4]) as Number + 1)]' doc:name="Set Variable" doc:id="bf525853-0b01-4da8-8bae-f05c5a3f4792" variableName="Eid"/>
+		<db:insert doc:name="Insert" doc:id="b6b2de95-0373-4e76-946e-bc68c70d474c" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into enquiryDetails(eid,userName,emailId,contactNo,dateFrom,toDate,query) 
+values(:a,:b,:c,:d,:e,:f,:g)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	a: vars.Eid,
+	b: vars.userName,
+	c: vars.emailId,
+	d: vars.contactNo,
+	e: vars.dateFrom,
+	f: vars.toDate,
+	g: vars.query
+}]]]></db:input-parameters>
+		</db:insert>
+		<choice doc:name="Choice" doc:id="24dd958a-d44b-41b1-8360-236a2df8e338" >
+			<when expression="#[payload.affectedRows&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="f49f06a2-3666-48ed-9480-5a7c8835fc59">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ {
+ 	
+ message: (vars.Eid) as String ++ " inserted successfully "
+ 
+ }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="53c598bb-2696-45ae-aa4a-ef5c5b8684ff" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: (vars.Eid) ++ " already present in the data."
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[500]" doc:name="Set Variable" doc:id="40a4cb0d-ebe0-4656-a607-1c79ee534c1b" variableName="httpStatus"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="PatchFlow" doc:id="e4622ebc-4557-4226-9ca9-d30e0b5f579e" >
+		<flow-ref doc:name="Flow Reference" doc:id="81d496a4-ce96-447e-8f28-159b0fbabdfe" name="VariableSub_Flow"/>
+		<db:update doc:name="Update" doc:id="49d32363-df3a-4a18-9039-054f2a9c61ed" config-ref="Database_Config">
+			<db:sql ><![CDATA[update enquiryDetails set emailId = :o, contactNo = :p where eid = :i]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	o: vars.emailID,
+	p: vars.contactNo,
+	i: vars.eid
+}]]]></db:input-parameters>
+		</db:update>
+		<choice doc:name="Choice" doc:id="1754b88d-a456-4aee-8acc-8b02d7536297" >
+			<when expression="#[payload.affectedRows&gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="4f682388-bf34-41fa-8119-8bfc77be04a5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: (vars.eid) ++ " has been modified with new data"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="5677e7b6-fb46-4b14-a17c-475357a34be3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: " Invalid ID "
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="500" doc:name="Set Variable" doc:id="cf7edf28-68fe-40ca-8124-d9c51d9835a7" variableName="httpStatus"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

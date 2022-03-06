@@ -1,0 +1,9 @@
+http:
+ port: "8083"
+ 
+db:
+  host: "104.198.177.212"
+  port: "3306"
+  user: "root"
+  password: "akkuadam"
+  database: "user"   

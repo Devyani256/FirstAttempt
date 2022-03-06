@@ -1,0 +1,22 @@
+{
+  "Value": [
+    {
+      "eid": "E1001",
+      "userName": "Charlie Harper",
+      "emailId": "charlie123@xyz.com",
+      "contactNo": 8937652622,
+      "dateFrom": "2000-11-20",
+      "toDate": "2000-11-25",
+      "query": "I am unable to book a car"
+    },
+    {
+      "eid": "E1002",
+      "userName": "Alan Harper",
+      "emailId": "alen234@xyz.com",
+      "contactNo": 9937652245,
+      "dateFrom": "2001-04-12",
+      "toDate": "2001-04-20",
+      "query": "Is there any discount"
+    }
+  ]
+}

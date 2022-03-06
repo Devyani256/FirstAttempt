@@ -1,0 +1,13 @@
+%dw 2.0
+
+type auto_a4d70d34_9a33_48b3_99d0_9466300124f4_Output_Payload = {
+  eid?: String, 
+  toDate?: String, 
+  query?: String, 
+  emailId?: String, 
+  userName?: String, 
+  dateFrom?: String, 
+  contactNo?: String, 
+  _?: Any
+}
+
